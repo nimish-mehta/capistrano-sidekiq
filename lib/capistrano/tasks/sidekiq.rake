@@ -250,11 +250,20 @@ namespace :sidekiq do
     args.push "--config #{fetch(:sidekiq_config)}" if fetch(:sidekiq_config)
     args.push "--concurrency #{fetch(:sidekiq_concurrency)}" if fetch(:sidekiq_concurrency)
 
+    warn '*' * 50
+    warn fetch(:sidekiq_options_per_process)
     options_per_process_for_role = (fetch(:sidekiq_options_per_process) || {})[role.to_s]
 
+    warn role
+    warn options_per_process_for_role
+
     if options_per_process_for_role
+      warn options_per_process_for_role[idx]
       args.push options_per_process_for_role[idx]
+    else
+      warn "Missing options for role #{ role }"
     end
+    warn '*' * 50
     # use sidekiq_options for special options
     args.push fetch(:sidekiq_options) if fetch(:sidekiq_options)
 
