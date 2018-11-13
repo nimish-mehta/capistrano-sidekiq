@@ -94,7 +94,7 @@ namespace :sidekiq do
         else
           each_process_with_index do |pid_file, idx|
             unless pid_file_exists?(pid_file) && process_exists?(pid_file)
-              start_sidekiq(pid_file, idx)
+              start_sidekiq(role, pid_file, idx)
             end
           end
         end
@@ -236,7 +236,7 @@ namespace :sidekiq do
     execute :sidekiqctl, 'stop', pid_file.to_s, fetch(:sidekiq_timeout)
   end
 
-  def start_sidekiq(pid_file, idx = 0)
+  def start_sidekiq(role, pid_file, idx = 0)
     args = []
     args.push "--index #{idx}"
     args.push "--pidfile #{pid_file}"
@@ -249,8 +249,11 @@ namespace :sidekiq do
     end
     args.push "--config #{fetch(:sidekiq_config)}" if fetch(:sidekiq_config)
     args.push "--concurrency #{fetch(:sidekiq_concurrency)}" if fetch(:sidekiq_concurrency)
-    if (process_options = fetch(:sidekiq_options_per_process))
-      args.push process_options[idx]
+
+    options_per_process_for_role = (fetch(:sidekiq_options_per_process) || {})[role]
+
+    if options_per_process_for_role.present?
+      args.push options_per_process_for_role[idx]
     end
     # use sidekiq_options for special options
     args.push fetch(:sidekiq_options) if fetch(:sidekiq_options)
