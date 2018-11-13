@@ -211,7 +211,7 @@ namespace :sidekiq do
     sidekiq_roles.select! { |role| host.roles.include?(role) }
     sidekiq_roles.flat_map do |role|
       processes = fetch(:"#{ role }_processes") || fetch(:sidekiq_processes)
-      Array.new(processes) { |idx| fetch(:sidekiq_pid).gsub(/\.pid$/, "-#{idx}.pid") }
+      Array.new(processes) { |idx| fetch(:sidekiq_pid).gsub(/\.pid$/, "-#{idx}-#{role}.pid") }
     end
   end
 
@@ -250,9 +250,9 @@ namespace :sidekiq do
     args.push "--config #{fetch(:sidekiq_config)}" if fetch(:sidekiq_config)
     args.push "--concurrency #{fetch(:sidekiq_concurrency)}" if fetch(:sidekiq_concurrency)
 
-    options_per_process_for_role = (fetch(:sidekiq_options_per_process) || {})[role]
+    options_per_process_for_role = (fetch(:sidekiq_options_per_process) || {})[role.to_s]
 
-    if options_per_process_for_role.present?
+    if options_per_process_for_role
       args.push options_per_process_for_role[idx]
     end
     # use sidekiq_options for special options
